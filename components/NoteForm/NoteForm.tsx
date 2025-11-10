@@ -7,13 +7,21 @@ import { createNote } from '@/lib/api';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useNoteStore } from '@/lib/store/noteStore';
+import { Note, NoteTag } from '@/types/note';
+
+type CreateNoteData = Omit<Note, 'id' | 'createdAt' | 'updatedAt'>;
+
+const INITIAL_FORM_DATA: CreateNoteData = {
+  title: '',
+  content: '',
+  tag: 'Todo',
+};
 
 export default function NoteForm() {
   const router = useRouter();
   const queryClient = useQueryClient();
-
-  const { draft, setDraft, clearDraft } = useNoteStore();
-  const [formData, setFormData] = useState(draft);
+  const { setDraft, clearDraft } = useNoteStore();
+  const [formData, setFormData] = useState<CreateNoteData>(INITIAL_FORM_DATA);
 
   const mutation = useMutation({
     mutationFn: createNote,
@@ -35,7 +43,7 @@ export default function NoteForm() {
     >
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value as NoteTag | string }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
