@@ -1,41 +1,37 @@
 'use client';
 
 import css from './NoteForm.module.css';
-
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createNote } from '@/lib/api';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { useNoteStore } from '@/lib/store/noteStore';
-import { Note, NoteTag } from '@/types/note';
+import { CreateNoteData, useNoteStore } from '@/lib/store/noteStore';
+import { NoteTag } from '@/types/note';
 
-type CreateNoteData = Omit<Note, 'id' | 'createdAt' | 'updatedAt'>;
+interface NoteFormProps {
+  draft: CreateNoteData;
+}
 
-const INITIAL_FORM_DATA: CreateNoteData = {
-  title: '',
-  content: '',
-  tag: 'Todo',
-};
-
-export default function NoteForm() {
+export default function NoteForm({ draft }: NoteFormProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { setDraft, clearDraft } = useNoteStore();
-  const [formData, setFormData] = useState<CreateNoteData>(INITIAL_FORM_DATA);
+
+  const [formData, setFormData] = useState<CreateNoteData>(draft);
+
+  useEffect(() => {
+    setDraft(formData);
+  }, [formData, setDraft]);
 
   const mutation = useMutation({
     mutationFn: createNote,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notes'] });
-      alert('Post created!');
+      alert('Note created!');
       clearDraft();
       router.push('/notes/filter/all');
     },
   });
-
-  useEffect(() => {
-    setDraft(formData);
-  }, [formData, setDraft]);
 
   const handleChange = (
     e: React.ChangeEvent<
